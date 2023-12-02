@@ -38,11 +38,14 @@ Determine which games would have been possible if the bag had been loaded with o
 library(tidyverse)
 
 Day2input <- as.tibble(read_lines("day02.txt")) %>%
+  #separate the games and rounds 
   separate(value, into = c("Game", "Rounds"), sep = ":") %>%
   mutate(Game = as.numeric(str_remove(Game, "Game "))) %>%
   separate_longer_delim(Rounds, delim = ";") %>%
+  #add round labels so pivoting works later
   group_by(Game) %>%
   mutate(RoundNum = row_number()) %>%
+  #divide rounds into cube colors
   separate_longer_delim(Rounds, delim = ",") %>%
   mutate(Rounds = trimws(Rounds)) %>%
   separate(Rounds, into = c("Cubes", "Color"), sep = " ") %>%
@@ -51,6 +54,7 @@ Day2input <- as.tibble(read_lines("day02.txt")) %>%
   mutate_all(~replace(., is.na(.), 0))
 
 Possible <- Day2input %>%
+  #filter all of the group "Game" if conditions are met
   group_by(Game) %>%
   filter(all(red <= 12 & blue <= 14 & green <= 13))
 
@@ -84,11 +88,13 @@ For each game, find the minimum set of cubes that must have been present. What i
 #Part 2----
 
 Powers <- Day2input %>%
+  #pivot back to group by color/game and find max
   group_by(Game) %>%
   pivot_longer(cols = c(3:5), names_to = "Color", values_to = "Cubes") %>%
   group_by(Game, Color) %>%
-  summarize(MaxReq = max(Cubes)) %>%
-  pivot_wider(names_from = Color, values_from = MaxReq) %>%
+  summarize(MinReq = max(Cubes)) %>%
+  #pivot again for calculation (probably could use summarize again)
+  pivot_wider(names_from = Color, values_from = MinReq) %>%
   mutate(GamePower = red*blue*green)
 
 Total2 <- sum(Powers$GamePower)
