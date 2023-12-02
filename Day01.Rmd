@@ -1,0 +1,63 @@
+---
+title: "AoC 2023 - Day 1"
+author: "Paige Remde"
+date: "2023-12-01"
+output: html_document
+---
+
+```{r, message = FALSE, warning = FALSE}
+
+#Part 1----
+
+library(tidyverse)
+
+Day1input <- as.tibble(read_lines("day01.txt"))
+
+Calibration <- Day1input %>%
+  extract(value, ".*(\\d{1}).*$", into = c("LastDigit"), remove = F) %>%
+  extract(value, "^.*?(\\d{1})", into = c("FirstDigit"), remove = F) %>%
+  mutate(CalNum = as.numeric(paste(FirstDigit, LastDigit, sep = "")))
+                          
+Total <- sum(Calibration$CalNum)
+
+
+```
+
+--- Part Two ---
+Your calculation isn't quite right. It looks like some of the digits are actually spelled out with letters: one, two, three, four, five, six, seven, eight, and nine also count as valid "digits".
+
+Equipped with this new information, you now need to find the real first and last digit on each line. For example:
+
+two1nine
+eightwothree
+abcone2threexyz
+xtwone3four
+4nineeightseven2
+zoneight234
+7pqrstsixteen
+In this example, the calibration values are 29, 83, 13, 24, 42, 14, and 76. Adding these together produces 281.
+
+What is the sum of all of the calibration values?
+
+```{r}
+
+Calibration2 <- Day1input %>%
+  extract(value, ".*(\\d|one|two|three|four|five|six|seven|eight|nine).*$", into = c("LastDigit"), remove = F) %>%
+  extract(value, "^.*?(\\d|one|two|three|four|five|six|seven|eight|nine)", into = c("FirstDigit"), remove = F) %>%
+  mutate(across(c(FirstDigit, LastDigit), 
+                ~ case_when(. == "one" ~ 1,
+                            . == "two" ~ 2,
+                            . == "three" ~ 3,
+                            . == "four" ~ 4,
+                            . == "five" ~ 5,
+                            . == "six" ~ 6,
+                            . == "seven" ~ 7,
+                            . == "eight" ~8,
+                            . == "nine" ~ 9,
+                            TRUE ~ as.numeric(.)))) %>%
+  mutate(CalNum = as.numeric(paste(FirstDigit, LastDigit, sep = "")))
+                          
+Total2 <- sum(Calibration2$CalNum)
+
+```
+
