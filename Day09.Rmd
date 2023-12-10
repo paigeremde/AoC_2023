@@ -1,0 +1,68 @@
+---
+title: "AoC 2023 - Day 9"
+author: "Paige Remde"
+date: "2023-12-09"
+output: html_document
+---
+
+[Day 9 link](https://adventofcode.com/2023/day/9)
+
+```{r, message = FALSE, warning = FALSE}
+
+#Part 1----
+
+library(tidyverse)
+
+testlist <- list(c(0, 3, 6, 9, 12, 15),
+               c(1, 3, 6, 10, 15, 21),
+               c(10, 13, 16, 21, 30, 45)) %>%
+  lapply(as.numeric)
+
+Day09input <- read_lines("day09.txt") %>%
+  strsplit(.,"\\s+") %>%
+  lapply(as.numeric)
+
+Expand_f <- function(Values) {
+  Difference <- diff(Values)
+  i <- 1
+  Higher_end <- list(tail(Values, 1))
+  while (!all(Difference == 0)) {
+    i <- i + 1
+    Higher <- Difference
+    Difference <- diff(Difference)
+    Higher_end <- c(Higher_end, list(tail(Higher, 1)))
+  }
+  Higher_end <- c(Higher_end, list(tail(Difference, 1)))
+  New_val <- sum(unlist(Higher_end))
+  return(New_val)
+}
+
+
+Result <- lapply(Day09input, Expand_f)
+
+Answer <- sum(unlist(Result))
+
+```
+
+[Part 2](https://adventofcode.com/2023/day/9#part2)
+
+```{r}
+
+Expand_back <- function(Values) {
+  Values <- prepend(Values, 0)
+  Difference <- diff(Values)
+  while (length (Difference) > 1) {
+    Difference <- diff(Difference)
+  }
+  Result <- Difference
+  return(Result)
+}
+
+Part2_result <- lapply(Day09input, Expand_back)
+
+Answer2 <- sum(unlist(Part2_result))
+
+
+```
+
+
