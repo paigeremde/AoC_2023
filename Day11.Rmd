@@ -1,0 +1,87 @@
+---
+title: "Day 9"
+author: "Paige Remde"
+date: "2023-12-11"
+output: html_document
+---
+
+(Day 11)[https://adventofcode.com/2023/day/11]
+
+```{r, message = FALSE, warning = FALSE}
+
+#Part 1----
+
+library(tidyverse)
+
+Day11input <- read.fwf("day11.txt", widths=rep(1,140), comment.char = "", na.strings = "") 
+
+Input_long <- Day11input %>%
+  mutate(Row = row_number()) %>%
+  pivot_longer(cols = -c(Row), names_to = "Col", values_to = "value")
+
+Expand_rows <- Day11input %>%
+  mutate(EmptyRow = row_number()) %>%
+  filter_all(all_vars(. != "#")) %>%
+  select(EmptyRow)
+
+Expand_columns <- Day11input %>%
+  t() %>%
+  as.tibble() %>%
+  mutate(EmptyCol = row_number()) %>%
+  filter_all(all_vars(. != "#")) %>%
+  select(EmptyCol)
+
+Galaxies <- Input_long %>%
+  filter(value == "#") %>%
+  mutate(ID = row_number()) %>%
+  select(ID, Row, Col) %>%
+  mutate(across(everything(), str_remove_all, pattern = 'V')) %>%
+  mutate(across(everything(), as.numeric)) %>%
+  mutate(RowHigher = map_dbl(Row, ~ sum(Expand_rows$EmptyRow < .)),
+         ColHigher = map_dbl(Col, ~ sum(Expand_columns$EmptyCol < .))) %>%
+  mutate(New_Row = RowHigher + Row,
+         New_Col = ColHigher + Col)
+
+Distances <- Galaxies %>%
+  expand(Gal1 = ID, Gal2 = ID) %>%
+  filter(Gal1 < Gal2) %>%
+  mutate(
+    Row1 = Galaxies$New_Row[Gal1],
+    Col1 = Galaxies$New_Col[Gal1],
+    Row2 = Galaxies$New_Row[Gal2],
+    Col2 = Galaxies$New_Col[Gal2]) %>%
+  mutate(TCDistance = abs(Row1 - Row2) + abs(Col1 - Col2))
+
+Answer <- sum(Distances$TCDistance)
+  
+```
+
+(Part 2)[https://adventofcode.com/2023/day/11#part2]
+
+```{r}
+
+Galaxies2 <- Input_long %>%
+  filter(value == "#") %>%
+  mutate(ID = row_number()) %>%
+  select(ID, Row, Col) %>%
+  mutate(across(everything(), str_remove_all, pattern = 'V')) %>%
+  mutate(across(everything(), as.numeric)) %>%
+  mutate(RowHigher = map_dbl(Row, ~ sum(Expand_rows$EmptyRow < .)),
+         ColHigher = map_dbl(Col, ~ sum(Expand_columns$EmptyCol < .))) %>%
+  mutate(New_Row = (RowHigher * 999999) + Row,
+         New_Col = (ColHigher * 999999) + Col)
+
+Distances2 <- Galaxies2 %>%
+  expand(Gal1 = ID, Gal2 = ID) %>%
+  filter(Gal1 < Gal2) %>%
+  mutate(
+    Row1 = Galaxies2$New_Row[Gal1],
+    Col1 = Galaxies2$New_Col[Gal1],
+    Row2 = Galaxies2$New_Row[Gal2],
+    Col2 = Galaxies2$New_Col[Gal2]) %>%
+  mutate(TCDistance = abs(Row1 - Row2) + abs(Col1 - Col2))
+
+Answer2 <- sum(Distances2$TCDistance)
+
+```
+
