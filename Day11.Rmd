@@ -19,11 +19,13 @@ Input_long <- Day11input %>%
   mutate(Row = row_number()) %>%
   pivot_longer(cols = -c(Row), names_to = "Col", values_to = "value")
 
+#create df of rows that have no galaxies
 Expand_rows <- Day11input %>%
   mutate(EmptyRow = row_number()) %>%
   filter_all(all_vars(. != "#")) %>%
   select(EmptyRow)
 
+#create df of columns that have no galaxies
 Expand_columns <- Day11input %>%
   t() %>%
   as.tibble() %>%
@@ -32,24 +34,32 @@ Expand_columns <- Day11input %>%
   select(EmptyCol)
 
 Galaxies <- Input_long %>%
+  #create IDs for galaxies
   filter(value == "#") %>%
   mutate(ID = row_number()) %>%
   select(ID, Row, Col) %>%
+  #make values calculable 
   mutate(across(everything(), str_remove_all, pattern = 'V')) %>%
   mutate(across(everything(), as.numeric)) %>%
+  #find how many rows or columns are expanded before each galaxy
   mutate(RowHigher = map_dbl(Row, ~ sum(Expand_rows$EmptyRow < .)),
          ColHigher = map_dbl(Col, ~ sum(Expand_columns$EmptyCol < .))) %>%
+  #add number of rows/columns surpassed to original row/column location
   mutate(New_Row = RowHigher + Row,
          New_Col = ColHigher + Col)
 
 Distances <- Galaxies %>%
+  #create pairings for galaxies
   expand(Gal1 = ID, Gal2 = ID) %>%
+  #get rid of repeats
   filter(Gal1 < Gal2) %>%
+  #refer to row and column locations from galaxies df
   mutate(
     Row1 = Galaxies$New_Row[Gal1],
     Col1 = Galaxies$New_Col[Gal1],
     Row2 = Galaxies$New_Row[Gal2],
     Col2 = Galaxies$New_Col[Gal2]) %>%
+  #find distance (taxicab distance based on prompt)
   mutate(TCDistance = abs(Row1 - Row2) + abs(Col1 - Col2))
 
 Answer <- sum(Distances$TCDistance)
@@ -60,6 +70,9 @@ Answer <- sum(Distances$TCDistance)
 
 ```{r}
 
+#Part2----
+
+#do same thing as part 1 with some changes
 Galaxies2 <- Input_long %>%
   filter(value == "#") %>%
   mutate(ID = row_number()) %>%
@@ -68,6 +81,7 @@ Galaxies2 <- Input_long %>%
   mutate(across(everything(), as.numeric)) %>%
   mutate(RowHigher = map_dbl(Row, ~ sum(Expand_rows$EmptyRow < .)),
          ColHigher = map_dbl(Col, ~ sum(Expand_columns$EmptyCol < .))) %>%
+  #multiply surpassed rows/columns by expansion (-1) and add to original location
   mutate(New_Row = (RowHigher * 999999) + Row,
          New_Col = (ColHigher * 999999) + Col)
 
