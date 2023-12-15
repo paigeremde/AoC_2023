@@ -1,0 +1,35 @@
+---
+title: "AoC 2023 - Day 15"
+author: "Paige Remde"
+date: "2023-12-15"
+output: html_document
+---
+
+(Day 15)[https://adventofcode.com/2023/day/15]
+
+```{r, message = FALSE, warning = FALSE}
+
+#Part 1----
+
+library(tidyverse)
+
+Day15input <- as.tibble(read_lines("day15.txt")) %>%
+  separate_longer_delim(value, ",")
+
+testdata <- data.frame(value = c("rn=1", "cm-", "qp=3", "cm=2", "qp-", "pc=4", "ot=9", "ab=5", "pc-", "pc=6", "ot=7"))
+
+Algorithm_res <- Day15input %>%
+  mutate(Hash = map_int(strsplit(value, NULL), function(chars) {
+      accumulate(chars, function(acc, x) {
+        current_value <- acc + as.numeric(utf8ToInt(x))
+        current_value <- current_value * 17
+        current_value <- current_value %% 256
+        return(current_value)}, .init = 0) %>%
+        tail(1)}))
+
+Answer <- sum(Algorithm_res$Hash)
+
+```
+
+
+
